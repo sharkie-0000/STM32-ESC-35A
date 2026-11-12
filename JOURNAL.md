@@ -415,11 +415,7 @@ specifically, pad 4 of the ina180 amplifier collided with bypass capacitor c14, 
 ## Fixing component overlaps
 **Total time spent: 2.0 hours**
 
-i resolved the ina180 overlap by rotating decoupling capacitor c14 by 90 degrees and moving it to x=136.8mm, creating 2.0mm of clean separation from the analog output net. this eliminated all pad-to-pad collision warnings.
-
-![Corrected INA180 and C14 Component Placement](image/pcb_bot_sensing_ldo.png)
-
-i also shifted the gain setting passives slightly downward to open a clean copper channel for the filtered current sense feedback line into mcu pin 11.
+i resolved the ina180 overlap by rotating decoupling capacitor c14 by 90 degrees and moving it to x=136.8mm, creating 2.0mm of clean separation from the analog output net. this eliminated all pad-to-pad collision warnings. i also shifted the gain setting passives slightly downward to open a clean copper channel for the filtered current sense feedback line into mcu pin 11.
 
 ![3D Bottom View Following INA180 Clearance Fixes](image/pcb_bottom_3d.png)
 
