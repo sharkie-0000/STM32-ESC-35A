@@ -336,11 +336,7 @@ the bottom layer is reserved exclusively for the stm32g071 mcu, fd6288q gate dri
 ## Placing the MOSFETs
 **Total time spent: 4.0 hours**
 
-i spent extensive time optimizing the physical placement of the six toshiba mosfets on the top layer. fets were arranged in three vertical pairs corresponding to the three phases, high-side fets q1, q3, q5 along the top edge and low-side fets q2, q4, q6 along the bottom edge.
-
-![MOSFET Array Placement on Top Layer](image/pcb_top_mosfets.png)
-
-this layout provides identical loop inductances for all three half-bridges and allows direct linear copper pours from phase switching nodes to the motor output pads.
+i spent extensive time optimizing the physical placement of the six toshiba mosfets on the top layer. fets were arranged in three vertical pairs corresponding to the three phases, high-side fets q1, q3, q5 along the top edge and low-side fets q2, q4, q6 along the bottom edge. This layout provides identical loop inductances for all three half-bridges and allows direct linear copper pours from phase switching nodes to the motor output pads.
 
 ![Power Stage Inverter Bridge Component Distribution](image/pcb_top_power_stage.png)
 
