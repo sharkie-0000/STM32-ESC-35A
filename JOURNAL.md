@@ -393,11 +393,7 @@ i placed the sgm2203 ldo u3 near the vbat entry pad at the board edge to step do
 ## Adding SWD debug pads
 **Total time spent: 1.0 hours**
 
-i arranged the five swd debug test pads tp1 through tp5 in a compact vertical row at x=140.8mm, y=97.5mm through 103.5mm on the bottom layer. pads were spaced with 1.27mm pitch for standard pogo pin programming jigs.
-
-![SWD Programming Test Pad Arrangement Detail](image/pcb_bot_swd_header.png)
-
-placing the pads near the left board edge keeps programming cables clear of the high-current mosfet area during initial firmware flashing and testing.
+i arranged the five swd debug test pads tp1 through tp5 in a compact vertical row at x=140.8mm, y=97.5mm through 103.5mm on the bottom layer. pads were spaced with 1.27mm pitch for standard pogo pin programming jigs. placing the pads near the left board edge keeps programming cables clear of the high-current mosfet area during initial firmware flashing and testing.
 
 ![3D View of Programming Pads and Peripheral Passives](image/pcb_3d_sensing_swd.png)
 
