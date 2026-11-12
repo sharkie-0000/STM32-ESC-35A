@@ -121,17 +121,6 @@ Verified with native KiCad 10 CLI (`kicad-cli pcb drc --severity-all`):
 
 ---
 
-## Engineering Development Log
-
-The project development log is documented across 52 engineering sessions in [`JOURNAL.md`](JOURNAL.md):
-- **Sessions 1–10:** Research and part selection, block diagram, input protection, LDO regulator, MCU pinout, decoupling, gate driver, bootstrap circuit, MOSFET bridge, current shunt.
-- **Sessions 11–20:** Current sense amp, BEMF dividers, virtual star point, schematic checks, footprint cleanup, fixing ERC errors, BOM sourcing, 3D models.
-- **Sessions 21–30:** Stackup setup, design rules, board outline, solder pads, component placement planning, placing MOSFETs, caps, shunt, MCU, driver, and LDO.
-- **Sessions 31–40:** SWD pads, first DRC check, fixing overlaps, TVS spacing, edge clearances, silkscreen cleanup, polarity labels, 3D inspection, DSN export.
-- **Sessions 41–52:** Ground plane, power routing, finding MCU escape bottlenecks, moving caps for escape room, channel widening, autorouting passes, completing 100% routing, fixing necked traces, final DRC, and Gerber export.
-
----
-
 ## Bill of Materials (BOM)
 
 | Qty | Component | Selected Part | Supplier | LCSC Part Number | Unit Price (USD) | Order Cost (USD) |
