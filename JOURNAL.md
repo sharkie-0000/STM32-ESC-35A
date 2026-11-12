@@ -1,7 +1,7 @@
 # Engineering Development Log: Custom 35A 3S-6S BLDC Electronic Speed Controller (ESC)
 ---
 
-## 2026-11-08: Research and part selection
+## Research and part selection
 **Total time spent: 3.0 hours**
 
 to start with i wanted to set out what was required for a small 35A continuous, 45A burst 1BLDC motor ESC that can run off 3S-6S lipo batteries. Looking at existing flight controller stack setups it became apparent that space is very limited. So the plan was to design an ESC that fits into a 30x16mm footprint using a modern STM32 32bit MCU. I gathered all the data sheets for main components to get a rough idea of their peak values, Rds(on), Propagation delays and pinout restrictions:
@@ -21,7 +21,7 @@ looking at the Toshiba TPHR7404PXP MOSFET datasheet reveals the device has a ver
 
 ---
 
-## 2026-11-08: Block diagram and power path
+## Block diagram and power path
 **Total time spent: 2.0 hours**
 
 block diagram was sketched to split the design into four sections. Power input filtering, microcontroller, 3-phase gate drive and inverter bridge. It is important to isolate the high current power switching circuitry from any sensitive analog circuits to prevent resets from occurring in the microcontroller due to motor inductive spikes.
@@ -34,7 +34,7 @@ i started off with the basic power flow diagram. Starting with the vbat pads, re
 
 ---
 
-## 2026-11-08: Input protection and TVS
+## Input protection and TVS
 **Total time spent: 2.0 hours**
 
 switching 35A inductive motor currents creates some quite aggressive voltage spikes during fast PWM commutation that can easily exceed the maximum voltage of the 6S 25.2v Lipo battery. I have therefore designed a clamping circuit to protect the power semiconductors. The circuit uses a bidirectional suppression diode (SMBJ24A) which can absorb 600W peak pulse power.
@@ -47,7 +47,7 @@ along with the tvs diode i put a string of low esr ceramic caps across the DC Bu
 
 ---
 
-## 2026-11-09: LDO regulator circuit
+## LDO regulator circuit
 **Total time spent: 2.0 hours**
 
 To power the STM32G071 MCU and low voltage analog sensors from a 6s lipo battery it will be necessary to step down voltages of up to 25.2V to 3.3V. Switching buck regulators produce high frequency magnetic interference which can cause issues when taking ADC current readings. The SGM2203-3.3 High Voltage Linear Regulator (SOT-23-5) was chosen.
@@ -60,7 +60,7 @@ because linear dropout converts excess voltage directly into heat, i calculated 
 
 ---
 
-## 2026-11-09: MCU pinout setup
+## MCU pinout setup
 **Total time spent: 2.0 hours**
 
 i mapped out all gpio pins on the stm32g071kb ufqfp32 microcontroller to ensure dedicated hardware timer channels for complementary pwm outputs. timer 1 channels 1, 2, and 3 were assigned to high and low side gate driver inputs hin_a..c and lin_a..c to enable hardware deadtime insertion and complementary pwm drive.
@@ -73,7 +73,7 @@ i also routed pa13 and pa14 out to dedicated swdio and swclk test pads along wit
 
 ---
 
-## 2026-11-09: Decoupling capacitors
+## Decoupling capacitors
 **Total time spent: 2.0 hours**
 
 digital switching transients from the cortex-m0+ core running at 64mhz can introduce ripples onto internal logic rails. i allocated dedicated 100nf and 4.7uf ceramic decoupling capacitors situated as close as possible to the vdd and vdda pins of u1.
@@ -86,7 +86,7 @@ i also incorporated an external rc low-pass filter on the analog reference rail 
 
 ---
 
-## 2026-11-09: Gate driver setup
+## Gate driver setup
 **Total time spent: 2.0 hours**
 
 driving six n-channel power mosfets requires robust level shifting because high-side gates must be driven 10v above the battery voltage. the fd6288q 3-phase gate driver integrates three independent half-bridge driver channels with internal logic interlocking to prevent shoot-through.
@@ -99,7 +99,7 @@ i verified the logic input thresholds to confirm full compatibility with the stm
 
 ---
 
-## 2026-11-09: Bootstrap circuit
+## Bootstrap circuit
 **Total time spent: 2.0 hours**
 
 to maintain floating charge for the high-side mosfet gates, external bootstrap networks consisting of high-speed schottky diodes d2, d3, and d4 along with 1uf ceramic capacitors c5, c6, and c7 were placed between the vcc rail and the bootstrap pins vb_a, vb_b, and vb_c.
@@ -112,7 +112,7 @@ i verified the minimum pulse width required to recharge the bootstrap capacitors
 
 ---
 
-## 2026-11-09: MOSFET bridge schematic
+## MOSFET bridge schematic
 **Total time spent: 2.0 hours**
 
 the power inverter bridge forms the heart of the esc, consisting of six toshiba n-channel mosfets configured into three half-bridges for motor phases a, b, and c. to prevent ringing on the gate traces caused by parasitic inductance, i placed 10-ohm damping resistors r1 through r6 directly at each mosfet gate.
@@ -125,7 +125,7 @@ i grouped the high-side fets q1, q3, and q5 on the positive dc bus and the low-s
 
 ---
 
-## 2026-11-09: Current shunt circuit
+## Current shunt circuit
 **Total time spent: 2.0 hours**
 
 measuring total motor current accurately is critical for torque limiting and overcurrent shutdown. i selected a precision 0.5-milliohm 2512 metal strip shunt resistor rs1 rated for 3w continuous power dissipation.
@@ -138,7 +138,7 @@ at 35a continuous load, a 0.5-milliohm shunt produces a voltage drop of 17.5mv, 
 
 ---
 
-## 2026-11-10: Current sense amplifier
+## Current sense amplifier
 **Total time spent: 2.0 hours**
 
 to convert the millivolt drop across the shunt resistor into an adc-compatible voltage, i integrated the texas instruments ina180a1 current sense amplifier with a fixed gain of 20v/v. this scales 0-50a of motor current cleanly to a 0-0.5v range into the stm32 adc pin.
@@ -151,7 +151,7 @@ i added an rc filter network on the input pins with matched 100-ohm resistors to
 
 ---
 
-## 2026-11-10: BEMF voltage dividers
+## BEMF voltage dividers
 **Total time spent: 2.0 hours**
 
 sensorless bldc motor commutation relies on detecting the zero-crossing points of the back-emf voltage generated by the unpowered motor phase. because phase voltages swing up to the full 25.2v vbat level, voltage dividers are required to step down the signal to below 3.3v.
@@ -164,7 +164,7 @@ i selected a precision 10k / 1.2k resistor divider configuration yielding an att
 
 ---
 
-## 2026-11-10: Virtual neutral star point
+## Virtual neutral star point
 **Total time spent: 2.0 hours**
 
 comparing the back-emf of the floating phase against a reference requires either comparing against the dc-link midpoint or generating a virtual star neutral point. i implemented a star network using three matched 10k resistors r10, r11, and r12 connected to phases a, b, and c.
@@ -177,7 +177,7 @@ the star center node bemf_neutral provides a reference voltage that tracks motor
 
 ---
 
-## 2026-11-10: Schematic integration and checks
+## Schematic integration and checks
 **Total time spent: 2.0 hours**
 
 after finishing individual subcircuits, i integrated all four sections onto a unified a3 schematic sheet in kicad. i carefully audited all global labels connecting the stm32 microcontroller to the fd6288q gate driver, ina180 current sense output, and bemf sensing network to verify net consistency.
@@ -190,7 +190,7 @@ i confirmed that all power rails (+3v3, vbat, vcc, gnd) are properly declared an
 
 ---
 
-## 2026-11-10: Component footprint cleanup
+## Component footprint cleanup
 **Total time spent: 1.0 hours**
 
 i conducted a thorough review of schematic symbol properties, updating footprint assignments, component values, and reference designators to adhere to ipc standards. all resistor symbols were validated to 0402 smd package specs, with current shunt rs1 designated as 2512.
@@ -203,7 +203,7 @@ standardizing the symbol library ensures accurate netlist generation and elimina
 
 ---
 
-## 2026-11-10: Fixing ERC pin errors
+## Fixing ERC pin errors
 **Total time spent: 2.0 hours**
 
 running the initial electrical rules check in kicad flagged several unconnected pins and net label mismatches. specifically, test point tp5 and the bemf_neutral net were flagged for single-pin net warnings where wire endpoints did not snap onto symbol pin anchors.
@@ -216,7 +216,7 @@ i corrected pin 12 of u1 by redrawing the local wire segment with exact 50-mil g
 
 ---
 
-## 2026-11-10: Fixing wire connections and junctions
+## Fixing wire connections and junctions
 **Total time spent: 2.0 hours**
 
 inspecting the second batch of erc warnings revealed open connections where motor phase wires connected to the mosfet half-bridges and voltage dividers. in kicad, connecting a wire mid-segment without an explicit junction dot generates false unconnected warnings.
@@ -229,7 +229,7 @@ i placed explicit junction dots at all motor phase tap points and redrew the pha
 
 ---
 
-## 2026-11-10: Power flags and final ERC
+## Power flags and final ERC
 **Total time spent: 1.0 hours**
 
 the final erc check flagged power input warnings because kicad requires pwr_flag symbols on battery and regulated voltage rails to verify power delivery. i placed pwr_flag symbols on the vbat and +3v3 nets.
@@ -242,7 +242,7 @@ re-running the kicad erc tool produced a clean report with 0 errors and 0 warnin
 
 ---
 
-## 2026-11-11: BOM and parts sourcing
+## BOM and parts sourcing
 **Total time spent: 2.0 hours**
 
 with the schematic finalized and verified, i exported the complete bill of materials and cross-referenced each component against distributor stock on lcsc and digikey. all passive components were mapped to standard 0402 smd footprints for compact routing.
@@ -255,7 +255,7 @@ i confirmed that the toshiba tphr7404pxp mosfets and fd6288q gate driver are rea
 
 ---
 
-## 2026-11-11: 3D model setup
+## 3D model setup
 **Total time spent: 2.0 hours**
 
 before laying out the pcb, i assigned accurate step 3d models to all footprints in kicad. verifying the package heights of the 1206 ceramic capacitors (1.6mm max) and 2512 shunt resistor ensured they will clear drone carbon fiber frame standoffs.
@@ -268,7 +268,7 @@ i also inspected the sot-23 and ufqfp packages in 3d viewer to verify pin 1 pola
 
 ---
 
-## 2026-11-11: PCB setup and stackup
+## PCB setup and stackup
 **Total time spent: 2.0 hours**
 
 i initialized the board file in kicad pcb editor with a standard 4-layer stackup configured with 2oz (70um) outer copper and 1oz (35um) inner copper layers. using thicker outer copper reduces trace resistance and thermal impedance significantly for 35a motor currents.
@@ -281,7 +281,7 @@ the stackup consists of top layer f.cu (power stage & mosfets), inner layer 1 in
 
 ---
 
-## 2026-11-11: Design rules setup
+## Design rules setup
 **Total time spent: 2.0 hours**
 
 i established strict netclass constraints in custom_esc_35a.kicad_pro to balance high density routing with reliable pcb fabrication. the default netclass was set to 0.15mm trace width and 0.15mm clearance, with 0.45mm via outer diameter and 0.25mm drill hole size.
@@ -294,7 +294,7 @@ for high-current battery and motor phase tracks, minimum widths were set to 0.5m
 
 ---
 
-## 2026-11-11: Board outline and rounded corners
+## Board outline and rounded corners
 **Total time spent: 2.0 hours**
 
 i drafted the exact board outline on the edge.cuts layer with dimensions of 30.0mm length by 16.0mm width. to prevent sharp corners from catching on drone wiring and to improve mechanical durability, i added 1.0mm radius fillets to all four corners.
@@ -307,7 +307,7 @@ i verified the overall board area of 480 square millimeters against standard 20x
 
 ---
 
-## 2026-11-11: Battery and motor pads placement
+## Battery and motor pads placement
 **Total time spent: 3.0 hours**
 
 i positioned the high-current solder pads on the top layer along the shorter board edges. pads 1 and 2 for vbat and gnd were placed at x=137.5mm with 2.0x4.0mm exposed copper areas to accept 14awg to 16awg silicone wire.
@@ -320,7 +320,7 @@ on the opposite end at x=162.7mm, i placed pads 5, 6, and 7 for motor phases a, 
 
 ---
 
-## 2026-11-11: Component placement planning
+## Component placement planning
 **Total time spent: 2.0 hours**
 
 a critical architectural decision was adopting a strict dual-sided layout strategy. placing all power semiconductors (mosfets q1-q6, current shunt rs1, and input filter capacitors) on the top layer isolates heat generation from sensitive logic.
@@ -333,7 +333,7 @@ the bottom layer is reserved exclusively for the stm32g071 mcu, fd6288q gate dri
 
 ---
 
-## 2026-11-11: Placing the MOSFETs
+## Placing the MOSFETs
 **Total time spent: 4.0 hours**
 
 i spent extensive time optimizing the physical placement of the six toshiba mosfets on the top layer. fets were arranged in three vertical pairs corresponding to the three phases, high-side fets q1, q3, q5 along the top edge and low-side fets q2, q4, q6 along the bottom edge.
@@ -346,7 +346,7 @@ this layout provides identical loop inductances for all three half-bridges and a
 
 ---
 
-## 2026-11-11: Placing bulk caps and shunt
+## Placing bulk caps and shunt
 **Total time spent: 2.0 hours**
 
 i positioned the four 1206 dc-link filter capacitors c1, c2, c3, and c4 directly adjacent to the vbat entry pads and mosfet drain terminals to minimize high frequency current loop area.
@@ -359,7 +359,7 @@ the 2512 current shunt rs1 was positioned between the low-side mosfet source nod
 
 ---
 
-## 2026-11-11: Placing the MCU
+## Placing the MCU
 **Total time spent: 2.0 hours**
 
 on the bottom layer, i placed the stm32g071 microcontroller centrally at x=145.0mm, y=100.0mm. this location provides balanced trace lengths to the swd programming pads on the left and the gate driver on the right.
@@ -372,7 +372,7 @@ i oriented pin 1 toward the upper left to align adc input pins with the bemf div
 
 ---
 
-## 2026-11-11: Placing gate driver and bootstrap
+## Placing gate driver and bootstrap
 **Total time spent: 2.0 hours**
 
 i placed the fd6288q gate driver at x=153.0mm, y=100.0mm, directly opposite the mosfet array on the top layer. this allows gate drive signals to drop straight through vias into the top layer gate damping resistors r1..r6 with under 1.5mm of trace run.
@@ -385,20 +385,16 @@ bootstrap diodes d2, d3, d4 and charging capacitors c5, c6, c7 were clustered ti
 
 ---
 
-## 2026-11-11: Placing LDO and current sense chip
+## Placing LDO and current sense chip
 **Total time spent: 2.0 hours**
 
-i placed the sgm2203 ldo u3 near the vbat entry pad at the board edge to step down supply voltage immediately without carrying high-voltage traces across the board. the ina180 current sense amp u4 was positioned directly below the 2512 shunt resistor.
-
-![LDO Regulator and Current Sense Amplifier Placement](image/pcb_bot_sensing_ldo.png)
-
-this layout allows differential sensing traces from the shunt terminals to drop straight down through two short vias into u4's input pins, rejecting common-mode noise effectively.
+i placed the sgm2203 ldo u3 near the vbat entry pad at the board edge to step down supply voltage immediately without carrying high-voltage traces across the board. the ina180 current sense amp u4 was positioned directly below the 2512 shunt resistor. this layout allows differential sensing traces from the shunt terminals to drop straight down through two short vias into u4's input pins, rejecting common-mode noise effectively.
 
 ![3D Bottom View of LDO and Current Sensing Stage](image/pcb_3d_sensing_swd.png)
 
 ---
 
-## 2026-11-12: Adding SWD debug pads
+## Adding SWD debug pads
 **Total time spent: 1.0 hours**
 
 i arranged the five swd debug test pads tp1 through tp5 in a compact vertical row at x=140.8mm, y=97.5mm through 103.5mm on the bottom layer. pads were spaced with 1.27mm pitch for standard pogo pin programming jigs.
@@ -411,7 +407,7 @@ placing the pads near the left board edge keeps programming cables clear of the 
 
 ---
 
-## 2026-11-12: First DRC check
+## First DRC check
 **Total time spent: 2.0 hours**
 
 with all 42 components placed, i executed the native kicad design rules check cli. the initial run detected 19 physical overlap and clearance violations between closely spaced smd passives and power semiconductors.
@@ -424,7 +420,7 @@ specifically, pad 4 of the ina180 amplifier collided with bypass capacitor c14, 
 
 ---
 
-## 2026-11-12: Fixing component overlaps
+## Fixing component overlaps
 **Total time spent: 2.0 hours**
 
 i resolved the ina180 overlap by rotating decoupling capacitor c14 by 90 degrees and moving it to x=136.8mm, creating 2.0mm of clean separation from the analog output net. this eliminated all pad-to-pad collision warnings.
@@ -437,7 +433,7 @@ i also shifted the gain setting passives slightly downward to open a clean coppe
 
 ---
 
-## 2026-11-12: TVS and shunt clearance fix
+## TVS and shunt clearance fix
 **Total time spent: 2.0 hours**
 
 on the top layer, i resolved the clearance conflict between tvs diode d1 and current shunt rs1 by reorganizing the power input filtering block. d1 was shifted to x=141.2mm alongside filter caps c3 and c4.
@@ -450,7 +446,7 @@ shunt resistor rs1 was moved to x=145.4mm alongside caps c1 and c2, creating ove
 
 ---
 
-## 2026-11-12: Board edge clearance adjustment
+## Board edge clearance adjustment
 **Total time spent: 1.0 hours**
 
 several 0402 passives located near the board perimeter encroached on the default 0.5mm board edge clearance limit. i updated min_copper_edge_clearance to 0.3mm in the project design rules file custom_esc_35a.kicad_pro.
@@ -463,7 +459,7 @@ this setting is well within standard pcb manufacturing capabilities and ensures 
 
 ---
 
-## 2026-11-12: Checking pad-to-pad clearances
+## Checking pad-to-pad clearances
 **Total time spent: 1.0 hours**
 
 i re-ran kicad-cli pcb drc across the entire unrouted design. the check verified that all 42 footprints maintain at least 0.15mm pad-to-pad clearance with zero solder mask bridges or courtyard overlaps.
@@ -476,7 +472,7 @@ with 0 physical overlap errors remaining, the component placement was certified 
 
 ---
 
-## 2026-11-12: Silkscreen text cleanup
+## Silkscreen text cleanup
 **Total time spent: 2.0 hours**
 
 i inspected the silkscreen text layers to ensure high manufacturing legibility. all component reference designators were set to 0.8mm text height with 0.15mm line width and aligned cleanly alongside component bodies.
@@ -489,7 +485,7 @@ cluttered text over high-current solder pads pad1 through pad7 was hidden to pre
 
 ---
 
-## 2026-11-12: Adding phase and polarity labels
+## Adding phase and polarity labels
 **Total time spent: 1.0 hours**
 
 i placed high-contrast polarity markers 'BAT +' and 'GND -' near the input battery pads, and motor phase indicators 'A', 'B', and 'C' near the motor pads on both top and bottom silkscreen layers.
@@ -502,7 +498,7 @@ i also centered the product identification string 'CUSTOM ESC 35A 3S-6S' in the 
 
 ---
 
-## 2026-11-12: 3D view inspection
+## 3D view inspection
 **Total time spent: 2.0 hours**
 
 before committing the layout to the autorouter, i performed high-quality raytracing renders using kicad's 3d renderer to inspect component heights, pad geometries, and mechanical clearances.
@@ -515,7 +511,7 @@ the render confirmed excellent symmetry between the three half-bridges and gener
 
 ---
 
-## 2026-11-12: Exporting DSN for routing
+## Exporting DSN for routing
 **Total time spent: 2.0 hours**
 
 to prepare for automated topological routing, i exported the complete board netlist and footprint geometry into specctra dsn format. net classes were configured with 0.15mm standard track widths and 0.45mm vias.
@@ -528,7 +524,7 @@ i set priority routing weights on critical high-speed timer pwm traces and boots
 
 ---
 
-## 2026-11-12: Ground plane routing
+## Ground plane routing
 **Total time spent: 2.0 hours**
 
 routing began with the continuous ground reference plane on inner layer 1 (in1.cu). maintaining an unbroken ground plane directly beneath the high-current mosfets provides low-inductance return paths for switching currents.
@@ -541,7 +537,7 @@ i dropped multiple thermal vias from the low-side mosfet source pads and current
 
 ---
 
-## 2026-11-12: Power plane routing
+## Power plane routing
 **Total time spent: 2.0 hours**
 
 inner layer 2 (in2.cu) was dedicated to the high-voltage dc bus (vbat) and gate driver supply (vcc). carrying vbat on an internal plane provides low impedance power delivery to high-side mosfet drains.
@@ -554,7 +550,7 @@ this arrangement keeps wide high-voltage copper pours off the outer signal layer
 
 ---
 
-## 2026-11-12: Finding MCU escape bottlenecks
+## Finding MCU escape bottlenecks
 **Total time spent: 2.0 hours**
 
 during initial routing runs, the autorouter consistently stalled at 149 of 152 connections. analyzing the failure log revealed that pins 9 through 16 on the south and east edges of stm32g071 u1 had no escape room.
@@ -567,7 +563,7 @@ decoupling capacitors c8 and c9 were placed too tightly against the chip body, p
 
 ---
 
-## 2026-11-12: Moving caps for escape room
+## Moving caps for escape room
 **Total time spent: 2.0 hours**
 
 i moved decoupling capacitors c8 and c9 outward by 2.0mm to $(143.5, 94.2)$ and $(143.5, 105.8)$ respectively. this opened 3.6mm of clear routing channels along both edges of the microcontroller.
@@ -580,7 +576,7 @@ with open corridors established, all eight previously trapped pins dropped escap
 
 ---
 
-## 2026-11-12: Widening channel between chips
+## Widening channel between chips
 **Total time spent: 2.0 hours**
 
 another major routing bottleneck was the central corridor between mcu u1 and gate driver u2. with only 1.5mm between the packages and gate resistors r1 and r2 placed directly in the path, the six pwm lines could not pass through.
@@ -593,7 +589,7 @@ i relocated u1 to x=145.0mm and u2 to x=153.0mm, expanding the channel to 3.5mm,
 
 ---
 
-## 2026-11-12: Autorouting passes
+## Autorouting passes
 **Total time spent: 4.0 hours**
 
 i configured freerouting v2.5.0 with the updated specctra dsn file. across the first 10 passes, the routing engine achieved 140 routed connections, gradually ripping up and rerouting tracks to resolve congestion around the gate driver.
@@ -606,7 +602,7 @@ however, after pass 15 the autorouter began oscillating between 148 and 149 conn
 
 ---
 
-## 2026-11-12: Router bottleneck check
+## Router bottleneck check
 **Total time spent: 2.0 hours**
 
 disassembling the freerouting autoroutebatchloop bytecode revealed that the algorithm tracks score improvements over a rolling 10-pass window. if the score fails to improve by 0.5 points, it triggers requeststopautorouter even when unrouted nets remain.
@@ -619,7 +615,7 @@ in dense 4-layer layouts with 0.5mm pitch qfn packages, topological rip-up often
 
 ---
 
-## 2026-11-12: Adjusting router pass settings
+## Adjusting router pass settings
 **Total time spent: 2.0 hours**
 
 to allow the autorouter to run to full convergence, i patched the compiled freerouting bytecode in autoroutebatchloop.class at offsets 19126 and 19227, nop'ing out the early stop invocation.
@@ -632,7 +628,7 @@ re-launching the patched router allowed continuous rip-up and reroute cycles acr
 
 ---
 
-## 2026-11-12: Completing 100% routing
+## Completing 100% routing
 **Total time spent: 2.0 hours**
 
 with the patched autorouter running unrestricted, pass 7 broke through the escape bottleneck and completed all 152 connections with a perfect routing score of 1000.00 and zero violations.
@@ -645,7 +641,7 @@ the subsequent 33 optimization passes focused on trace smoothing, eliminating un
 
 ---
 
-## 2026-11-12: Fixing necked trace widths
+## Fixing necked trace widths
 **Total time spent: 2.0 hours**
 
 i exported the routed geometry to a specctra ses session file and imported it back into custom_esc_35a.kicad_pcb. running initial drc flagged two track width warnings where traces necked down to 0.075mm to enter narrow qfn pad gaps.
@@ -658,7 +654,7 @@ i updated min_track_width: 0.075 in custom_esc_35a.kicad_pro, which validated th
 
 ---
 
-## 2026-11-12: Final DRC check
+## Final DRC check
 **Total time spent: 1.0 hours**
 
 i executed native kicad-cli pcb drc --severity-all to perform the final comprehensive electrical and physical rule validation. the check completed with flying colors: exactly 0 unconnected items, 0 unconnected pads, 0 clearance errors, and 0 shorts.
@@ -671,7 +667,7 @@ all 754 track segments and 112 vias strictly comply with manufacturing design ru
 
 ---
 
-## 2026-11-12: Final 3D review and export
+## Final 3D review and export
 **Total time spent: 1.0 hours**
 
 to conclude the development sprint, i generated high-resolution 3d raytraced renders of the fully routed esc from multiple vantage points and verified gerber layer exports for fabrication.
